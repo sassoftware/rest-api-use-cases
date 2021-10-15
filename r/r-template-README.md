@@ -1,4 +1,4 @@
-# Template Instructions
+# Template instructions
 Use this template as a guide to create new use cases. Follow these steps:
 1. create a directory for the new use case
 2. copy this README template into the directory
@@ -7,24 +7,26 @@ Use this template as a guide to create new use cases. Follow these steps:
 5. add any other supporting files/resources
 6. create a pull request for review
 
-# Title of the End-to-end Example
+# Title of the end-to-end example
 
 ## Overview
 
-- Give your app an overview of what you developed.
-- Add a more detailed description of what you worked on - the main topics users expect to see in the code.
+- Give your app a overview of what you developed.
+- Add a more detailed description of what you worked on - the main topics users will expect to see in the code.
 
 ## Prerequisites
 
 - Instructions on what to do before running the example.
 - List any required packages.
-- List any Python version requirements or dependencies.
+- List any R version requirements or dependencies.
 - Mention the authentication project
 
+### Variables
 
+Define any variable assignment prior to running the collection.
 
 ## Usage
-- List step-by-step instruction on how to run the use case.
+- List step-by-step instruciton on how to run the use case.
 - Execute this code in order to make it run: `your-script here`
 
 ## Endpoints Used
