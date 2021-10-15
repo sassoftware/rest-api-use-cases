@@ -1,0 +1,924 @@
+{
+	"info": {
+		"_postman_id": "b219820d-19c7-44fd-a2f4-65647ff243ae",
+		"name": "EtoE Modeling and Deployment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. OPTIONAL - get token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.environment.set(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{client_id}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{client_secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"SASLogon",
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "username",
+							"value": "{{username}}"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}"
+						}
+					]
+				},
+				"description": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}"
+			},
+			"response": []
+		},
+		{
+			"name": "1. create CAS session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"session_id\", jsonData[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "content-type",
+						"value": "application/vnd.sas.cas.session+json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/vnd.sas.cas.session+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/casManagement/servers/cas-shared-default/sessions",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"casManagement",
+						"servers",
+						"cas-shared-default",
+						"sessions"
+					]
+				},
+				"description": "http://magnus.unx.sas.com/casManagement/servers/cas-shared-default/sessions"
+			},
+			"response": []
+		},
+		{
+			"name": "2. upload data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Item-Type",
+						"value": "application/vnd.sas.data.table.cas.delimited.request+json"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "tableRequest",
+							"value": "{\n\"version\":1,\n\"sourceType\":\"DelimitedFile\",\n\"sourceArguments\":{\n    \"delimiter\":\",\",\n    \"tableUri\":\"\",\n    \"tableUriType\":\"\",\n    \"filter\":\"\"\n    },\n\"targetArguments\":{\n    \"tableName\":\"training\",\n    \"label\":\"\",\n    \"replace\":\"true\"\n    }\n}",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/jofurb/Downloads/hmeq.csv"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{sasserver}}/dataTables/dataSources/cas~fs~cas-shared-default~fs~Public/tables",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"dataTables",
+						"dataSources",
+						"cas~fs~cas-shared-default~fs~Public",
+						"tables"
+					]
+				},
+				"description": "Don't forget to clean the cookies when executing it"
+			},
+			"response": []
+		},
+		{
+			"name": "3. impute missing data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table\": {\n        \"caslib\":\"public\", \n        \"name\":\"training\"\n    }, \n    \"vars\": [\"CLAGE\",\"CLNO\",\"DEBTINC\",\"DELINQ\",\"DEROG\",\"JOB\",\"LOAN\",\"MORTDUE\",\"NINQ\",\"REASON\",\"VALUE\",\"YOJ\"],\n    \"outVarsNamePrefix\": \"\",\n    \"methodContinuous\": \"median\", \n    \"methodNominal\":\"mode\",\n    \"casout\":{\n        \"name\": \"training_impute\", \n        \"caslib\":\"casuser\",\n        \"promote\": true\n    },\n    \"copyvars\": [\"BAD\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session_id}}/actions/datapreprocess.impute",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session_id}}",
+						"actions",
+						"datapreprocess.impute"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. train decision tree",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"inputs\":[\"CLAGE\", \"CLNO\", \"DEBTINC\"],\n    \"nominals\":[\"BAD\"],\n    \"table\":{\"name\":\"training_impute\", \"caslib\":\"casuser\"},\n    \"target\":\"BAD\",\n    \"casout\":{\n        \"name\": \"dt_trained\", \n        \"caslib\":\"casuser\",\n        \"replace\": true\n    },\n    \"code\": {\n        \"casout\":{\n            \"caslib\":\"casuser\",\n            \"name\": \"dt_code\",\n            \"replace\": true\n        }\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session_id}}/actions/decisionTree.dtreeTrain",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session_id}}",
+						"actions",
+						"decisionTree.dtreeTrain"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. save code from decision tree",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"modeltable\": {\n        \"caslib\": \"casuser\",\n        \"name\": \"dt_trained\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session_id}}/actions/decisionTree.dtreeCode",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session_id}}",
+						"actions",
+						"decisionTree.dtreeCode"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. fetch code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"var code = jsonData.results.Fetch.rows[0][1];",
+							"postman.setEnvironmentVariable(\"sas_code\", code);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accepet",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \n    \"table\": {\n        \"caslib\":\"casuser\", \n        \"name\":\"dt_code\"\n    },\n    \"fetchVars\": [\"DataStepSrc\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session_id}}/actions/table.fetch",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session_id}}",
+						"actions",
+						"table.fetch"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. get public folder id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"public_f_id\", jsonData.items[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/folders/folders?filter=eq(name,'Public')",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"folders",
+						"folders"
+					],
+					"query": [
+						{
+							"key": "filter",
+							"value": "eq(name,'Public')"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. create sas code file",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"model_repo_fid\", jsonData.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "text/plain"
+					},
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/vnd.sas.file+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{sas_code}}"
+				},
+				"url": {
+					"raw": "{{sasserver}}/files/files?parentFolderUri=/folders/folders{{public_f_id}}&filename=sas_code.sas&Content-Disposition=attachment",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"files",
+						"files"
+					],
+					"query": [
+						{
+							"key": "parentFolderUri",
+							"value": "/folders/folders{{public_f_id}}"
+						},
+						{
+							"key": "filename",
+							"value": "sas_code.sas"
+						},
+						{
+							"key": "Content-Disposition",
+							"value": "attachment"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9. get repository folder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"repo_fid\", jsonData.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.sas.content.folder+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/folders/folders/@item?path=/Model Repositories/Public",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"folders",
+						"folders",
+						"@item"
+					],
+					"query": [
+						{
+							"key": "path",
+							"value": "/Model Repositories/Public"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10. create publishing destination",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/vnd.sas.models.publishing.destination.mas+json"
+					},
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/vnd.sas.models.publishing.destination.mas+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"realtime_deployment\",\n    \"destinationType\": \"microAnalyticService\"\n}​",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/modelPublish/destinations",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"modelPublish",
+						"destinations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11. create model",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"model_id\", jsonData.items[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.sas.models.model+json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/vnd.sas.models.model+json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"model created by api\",\n    \"scoreCodeType\": \"dataStep\",\n    \"eventProbVar\": \"DT_BAD_PredP\",\n    \"targetLevel\": \"binary\",\n    \"targetVariable\": \"DT_BAD\",\n    \"folderId\": \"{{repo_fid}}\",\n    \"function\": \"classification\",\n    \"inputVariables\": [\n        { \"name\": \"CLAGE\", \"type\": \"integer\" },\n        { \"name\": \"CLNO\", \"type\": \"integer\" },\n        { \"name\": \"DEBTINC\", \"type\": \"integer\" }\n    ],\n    \"outputVariables\": [\n        { \"name\": \"DT_BAD\", \"type\": \"integer\" },\n        { \"name\": \"DT_BAD_PredP\", \"type\": \"decimal\" }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/modelRepository/models",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"modelRepository",
+						"models"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12. add model files",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/octet-stream",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/vnd.sas.models.model+json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{sas_code}}",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/modelRepository/models/{{model_id}}/contents?name=score.sas",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"modelRepository",
+						"models",
+						"{{model_id}}",
+						"contents"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "score.sas"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13. publish model",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"m_pub_id\", jsonData[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true,
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.sas.models.publishing.request.asynchronous+json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"APIModel\",\n    \"notes\": \"Publish models\",\n    \"modelContents\": [{\n        \"modelName\": \"model_api\",\n        \"sourceUri\": \"/modelRepository/models/{{model_id}}\",\n        \"publishLevel\": \"model\"\n    }],\n    \"destinationName\": \"realtime_deployment\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/modelManagement/publish",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"modelManagement",
+						"publish"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "14. check created model",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"m_publish_name\", jsonData[\"publishName\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/modelPublish/models/{{m_pub_id}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"modelPublish",
+						"models",
+						"{{m_pub_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "15. score new data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"inputs\": [\n        {\n            \"name\": \"clage\",\n            \"value\": 20\n        },\n        {\n            \"name\": \"clno\",\n            \"value\": 100\n        },\n        {\n            \"name\": \"debtinc\",\n            \"value\": 2\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/microanalyticScore/modules/{{m_publish_name}}/steps/score",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"microanalyticScore",
+						"modules",
+						"{{m_publish_name}}",
+						"steps",
+						"score"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "sasserver",
+			"value": "https://your-server.com"
+		},
+		{
+			"key": "access_token",
+			"value": "get from Authentication Process"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "client_id",
+			"value": "postman_c"
+		},
+		{
+			"key": "client_secret",
+			"value": "postman_s"
+		}
+	]
+}

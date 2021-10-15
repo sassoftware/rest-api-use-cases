@@ -1,0 +1,357 @@
+{
+	"info": {
+		"_postman_id": "4b38a783-2d02-4c54-a975-e4cedaccc487",
+		"name": "EtoE AutoML",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. OPTIONAL - get token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.environment.set(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{client_id}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{client_secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"SASLogon",
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "username",
+							"value": "{{username}}"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}"
+						}
+					]
+				},
+				"description": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}"
+			},
+			"response": []
+		},
+		{
+			"name": "1. Create Automation Project",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"mlpa_proj_id\", jsonData[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/vnd.sas.analytics.ml.pipeline.automation.project+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"dataTableUri\": \"/dataTables/dataSources/cas~fs~cas-shared-default~fs~Public/tables/HMEQ\",\n    \"type\": \"predictive\",\n    \"name\": \"firstProject\",\n    \"description\": \"Project generated for test\",\n    \"settings\": {\n        \"autoRun\": true,\n        \"maxModelingTime\": 15\n    },\n    \"analyticsProjectAttributes\": {\n        \"targetVariable\": \"BAD\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/mlPipelineAutomation/projects",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"mlPipelineAutomation",
+						"projects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Get Project info",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/mlPipelineAutomation/projects/{{mlpa_proj_id}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"mlPipelineAutomation",
+						"projects",
+						"{{mlpa_proj_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Get Project State",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/mlPipelineAutomation/projects/{{mlpa_proj_id}}/state",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"mlPipelineAutomation",
+						"projects",
+						"{{mlpa_proj_id}}",
+						"state"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Get Champion Model",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.sas.analytics.ml.pipeline.automation.project.champion.model+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/mlPipelineAutomation/projects/{{mlpa_proj_id}}/championModel",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"mlPipelineAutomation",
+						"projects",
+						"{{mlpa_proj_id}}",
+						"championModel"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Publish Champion Model",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/mlPipelineAutomation/projects/{{mlpa_proj_id}}/championModel?action=publish&destinationName=maslocal",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"mlPipelineAutomation",
+						"projects",
+						"{{mlpa_proj_id}}",
+						"championModel"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "publish"
+						},
+						{
+							"key": "destinationName",
+							"value": "maslocal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Score Data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"scoreType\": \"Individual\",\n    \"destinationName\" : \"maslocal\",\n    \"inputs\": [\n        {\"name\": \"CLAGE\", \"value\": 300},\n        {\"name\": \"CLNO\", \"value\": 21},\n        {\"name\": \"DEBTINC\", \"value\": 24.5},\n        {\"name\": \"DELINQ\", \"value\": 0},\n        {\"name\": \"DEROG\", \"value\": 1},\n        {\"name\": \"JOB\", \"value\": \"Other\"},\n        {\"name\": \"REASON\", \"value\": \"DebtCon\"},\n        {\"name\": \"LOAN\", \"value\": 21500},\n        {\"name\": \"MORTDUE\", \"value\": 7806},\n        {\"name\": \"NINQ\", \"value\": 4},\n        {\"name\": \"VALUE\", \"value\": 95678},\n        {\"name\": \"YOJ\", \"value\": 4}\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/mlPipelineAutomation/projects/{{mlpa_proj_id}}/championModel/scoreData",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"mlPipelineAutomation",
+						"projects",
+						"{{mlpa_proj_id}}",
+						"championModel",
+						"scoreData"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "sasserver",
+			"value": "https://your-server.com"
+		},
+		{
+			"key": "access_token",
+			"value": "get from Authentication Process"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "client_id",
+			"value": "postman_c"
+		},
+		{
+			"key": "client_secret",
+			"value": "postman_s"
+		}
+	]
+}

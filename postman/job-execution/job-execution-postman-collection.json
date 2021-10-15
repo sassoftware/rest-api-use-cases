@@ -1,0 +1,479 @@
+{
+	"info": {
+		"_postman_id": "1bb93758-a62c-4069-9701-07936b85c013",
+		"name": "EtoE Job Execution",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. OPTIONAL - get token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.environment.set(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{client_id}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{client_secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"SASLogon",
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "username",
+							"value": "{{username}}"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}"
+						}
+					]
+				},
+				"description": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}"
+			},
+			"response": []
+		},
+		{
+			"name": "1. get public folder id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"public_f_id\", jsonData.items[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/folders/folders?filter=eq(name,'Public')",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"folders",
+						"folders"
+					],
+					"query": [
+						{
+							"key": "filter",
+							"value": "eq(name,'Public')"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. create folder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"folder_uri\", jsonData.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.sas.content.folder+json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/vnd.sas.content.folder+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"API Job Exec\",\n  \"description\": \"My API tests folder.\",\n  \"type\": \"folder\"\n}"
+				},
+				"url": {
+					"raw": "{{sasserver}}/folders/folders?parentFolderUri=/folders/folders/{{public_f_id}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"folders",
+						"folders"
+					],
+					"query": [
+						{
+							"key": "parentFolderUri",
+							"value": "/folders/folders/{{public_f_id}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. create job definition",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"job_id\", jsonData.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"version\":2,\n  \"name\":\"Simple proc print\",\n  \"description\":\"Show the contents of sashelp.class using PROC PRINT\",\n  \"type\":\"Compute\",\n  \"parameters\":[\n        {\n        \"version\": 1,\n        \"name\": \"_contextName\",\n        \"defaultValue\": \"SAS Job Execution compute context\",\n        \"type\": \"CHARACTER\",\n        \"label\": \"Context Name\",\n        \"required\": false\n    }\n  ],\n  \"code\":\"ods html style=HTMLBlue;\\nproc print data=sashelp.class; run; quit;\\nods html close;\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/jobDefinitions/definitions?parentFolderUri=/folders/folders/{{folder_uri}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"jobDefinitions",
+						"definitions"
+					],
+					"query": [
+						{
+							"key": "parentFolderUri",
+							"value": "/folders/folders/{{folder_uri}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. get job definition",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/jobDefinitions/definitions/{{job_id}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"jobDefinitions",
+						"definitions",
+						"{{job_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. submit job execution",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"job_submit_id\", jsonData.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Hello World Execution\",\n  \"description\": \"Execution of the job we previously created\",\n  \"jobDefinitionUri\": \"/jobDefinitions/definitions/{{job_id}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/jobExecution/jobs",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"jobExecution",
+						"jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. get job execution state",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/jobExecution/jobs/{{job_submit_id}}/state",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"jobExecution",
+						"jobs",
+						"{{job_submit_id}}",
+						"state"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. get job execution files",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"compute_job = jsonData.results.COMPUTE_JOB;",
+							"pm.environment.set(\"job_files_uri\", jsonData.results[\"sashtml.htm\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/jobExecution/jobs/{{job_submit_id}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"jobExecution",
+						"jobs",
+						"{{job_submit_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. get execution results",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/{{job_files_uri}}/content",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"{{job_files_uri}}",
+						"content"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "sasserver",
+			"value": "http://your-server.com"
+		},
+		{
+			"key": "access_token",
+			"value": "get from Authentication Process"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "client_id",
+			"value": "postman_c"
+		},
+		{
+			"key": "client_secret",
+			"value": "postman_s"
+		}
+	]
+}

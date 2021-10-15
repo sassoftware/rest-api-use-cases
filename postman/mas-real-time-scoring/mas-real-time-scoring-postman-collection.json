@@ -1,0 +1,259 @@
+{
+	"info": {
+		"_postman_id": "25194fcd-dca4-4b57-876f-daae6a80c392",
+		"name": "EtoE MAS Real-Time Scoring",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. OPTIONAL - get token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.environment.set(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{client_id}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{client_secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"SASLogon",
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "username",
+							"value": "{{username}}"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}"
+						}
+					]
+				},
+				"description": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}"
+			},
+			"response": []
+		},
+		{
+			"name": "1. Get Collection (deployed models/decisions)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/microanalyticScore/modules/{{mas_model_name}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"microanalyticScore",
+						"modules",
+						"{{mas_model_name}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Get a Specific Module",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/microanalyticScore/modules/forestautoml",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"microanalyticScore",
+						"modules",
+						"forestautoml"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Get Information about a Module",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/microanalyticScore/modules/forestautoml/steps",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"microanalyticScore",
+						"modules",
+						"forestautoml",
+						"steps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Score Model",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"inputs\": [\n        {\n            \"name\": \"clage\",\n            \"value\": 10\n            \n        },\n        {\n            \"name\": \"clno\",\n            \"value\": 10\n            \n        },\n        {\n            \"name\": \"debtinc\",\n            \"value\": 2\n            \n        },\n        {\n            \"name\": \"delinq\",\n            \"value\": 1\n            \n        },\n        {\n            \"name\": \"derog\",\n            \"value\": 1\n            \n        },\n        {\n            \"name\": \"job\",\n            \"value\": \"JobExec\"\n        },\n        {\n            \"name\": \"loan\",\n            \"value\": 10000\n            \n        },\n        {\n            \"name\": \"mortdue\",\n            \"value\": 20000\n            \n        },\n        {\n            \"name\": \"ninq\",\n            \"value\": 2\n            \n        },\n        {\n            \"name\": \"reason\",\n            \"value\": \"HomeImp\"\n        },\n        {\n            \"name\": \"value\",\n            \"value\": 100000\n            \n        },\n        {\n            \"name\": \"yoj\",\n            \"value\": 24\n            \n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/microanalyticScore/modules/forestautoml/steps/score",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"microanalyticScore",
+						"modules",
+						"forestautoml",
+						"steps",
+						"score"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "sasserver",
+			"value": "https://your-server.com"
+		},
+		{
+			"key": "access_token",
+			"value": "get from Authentication Process"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "client_id",
+			"value": "postman_c"
+		},
+		{
+			"key": "client_secret",
+			"value": "postman_s"
+		},
+		{
+			"key": "{{mas_model_name}}",
+			"value": "model_created_by_api"
+		}
+	]
+}

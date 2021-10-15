@@ -1,0 +1,420 @@
+{
+	"info": {
+		"_postman_id": "351a6d48-9cf2-47b1-81fb-ab2ed173e272",
+		"name": "EtoE Text Analytics - Concepts & Categories",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. OPTIONAL - get token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.environment.set(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{client_id}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{client_secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"SASLogon",
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "username",
+							"value": "{{username}}"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}"
+						}
+					]
+				},
+				"description": "{{sasserver}}/SASLogon/oauth/token?grant_type=password&username={{username}}&password={{password}}"
+			},
+			"response": []
+		},
+		{
+			"name": "1. Create CAS session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"session\", jsonData[\"session\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Call Concepts Model",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"model\": {\n        \"caslib\": \"{{modelCaslib}}\",\n        \"name\": \"{{modelConceptsTable}}\"\n    },\n    \"table\": {\n        \"caslib\": \"Public\",\n        \"name\": \"RESTAURANT_REVIEWS\"\n    },\n    \"docId\": \"Unique_ID\",\n    \"text\": \"text\",\n    \"casOut\": {\n        \"caslib\": \"casuser\",\n        \"name\": \"out_concepts\",\n        \"promote\": \"true\"\n    },\n    \"factOut\": {\n        \"caslib\": \"casuser\",\n        \"name\": \"out_facts\",\n        \"replace\": \"true\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session}}/actions/textRuleScore.applyConcept",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session}}",
+						"actions",
+						"textRuleScore.applyConcept"
+					]
+				},
+				"description": "modelLib and modelTable assets you will need to get from the Visual Text Analytics Project."
+			},
+			"response": []
+		},
+		{
+			"name": "2.1 Get Concepts Data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"format\": true,\n    \"sortby\": {\"name\": \"_concept_\"},\n    \"table\": {\n        \"caslib\": \"CASUSER\",\n        \"name\": \"OUT_CONCEPTS\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session}}/actions/table.fetch",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session}}",
+						"actions",
+						"table.fetch"
+					]
+				},
+				"description": "tblName is the name of the table you want to query."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Call Categories Model",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"model\": {\n        \"caslib\": \"{{modelCaslib}}\",\n        \"name\": \"{{modelCategoriesTable}}\"\n    },\n    \"table\": {\n        \"caslib\": \"Public\",\n        \"name\": \"RESTAURANT_REVIEWS\"\n    },\n    \"docId\": \"Unique_ID\",\n    \"text\": \"text\",\n    \"casOut\": {\n        \"caslib\": \"casuser\",\n        \"name\": \"out_categories\",\n        \"promote\": \"true\"\n    },\n    \"matchOut\": {\n        \"caslib\": \"casuser\",\n        \"name\": \"out_match_1\",\n        \"replace\": \"true\"\n    },\n    \"modelOut\": {\n        \"caslib\": \"casuser\",\n        \"name\": \"out_model_1\",\n        \"replace\": \"true\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session}}/actions/textRuleScore.applyCategory",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session}}",
+						"actions",
+						"textRuleScore.applyCategory"
+					]
+				},
+				"description": "modelLib and modelTable assets you will need to get from the Visual Text Analytics Project."
+			},
+			"response": []
+		},
+		{
+			"name": "3.1 Get Categories Data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table\": {\n        \"caslib\": \"casuser\",\n        \"name\": \"OUT_CATEGORIES\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session}}/actions/table.fetch",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session}}",
+						"actions",
+						"table.fetch"
+					]
+				},
+				"description": "tblName is the name of the table you want to query."
+			},
+			"response": []
+		},
+		{
+			"name": "dropTableConcepts",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"caslib\": \"casuser\",\n        \"name\": \"out_concepts\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session}}/actions/table.dropTable",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session}}",
+						"actions",
+						"table.dropTable"
+					]
+				},
+				"description": "tblName is the name of the table you want to query."
+			},
+			"response": []
+		},
+		{
+			"name": "dropTableCategories",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"caslib\": \"casuser\",\n        \"name\": \"out_categories\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{sasserver}}/cas-shared-default-http/cas/sessions/{{session}}/actions/table.dropTable",
+					"host": [
+						"{{sasserver}}"
+					],
+					"path": [
+						"cas-shared-default-http",
+						"cas",
+						"sessions",
+						"{{session}}",
+						"actions",
+						"table.dropTable"
+					]
+				},
+				"description": "tblName is the name of the table you want to query."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "sasserver",
+			"value": "https://your-server.com"
+		},
+		{
+			"key": "access_token",
+			"value": "get from Authentication Process"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "client_id",
+			"value": "postman_c"
+		},
+		{
+			"key": "client_secret",
+			"value": "postman_s"
+		}
+	]
+}
