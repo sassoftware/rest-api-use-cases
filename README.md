@@ -4,6 +4,9 @@
 
 This project aims to leverage the knowledge base of the SAS users and the developers community for robust SAS API documentation, user guides and quick starts.
 
+Watch the video for an overview of how to best utilise the GitHub repository.
+[![API end-to-end use case video](/images/repo-video.jpg)](https://video.sas.com/sharing?videoId=6278768817001 "API end-to-end use case video")
+
 ## Organization
 
 Examples are segmented by scripting language. The goal is to have all use cases represented in each language. Note, if you create the use case in Postman, you can easily convert to other languages using the 'Code' option. 
