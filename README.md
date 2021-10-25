@@ -4,7 +4,7 @@
 
 This project aims to leverage the knowledge base of the SAS users and the developers community for robust SAS API documentation, user guides and quick starts.
 
-Watch the video for an overview of how to best utilise the GitHub repository.
+### VIDEO: Learn how to use this GitHub repository.
 [![API end-to-end use case video](/images/repo-video.jpg)](https://video.sas.com/sharing?videoId=6278768817001 "API end-to-end use case video")
 
 ## Organization
