@@ -9,7 +9,7 @@ The use case is presented in two forms:  a Python program and a Jupyter Notebook
 
 ## Prerequisites
 
-Refer to the [Authentication Project](../authentication) project in order to get an access token.
+Refer to the [Authentication Project](../authentication) project in order to get an access token for this example.
 
 #### Variables to assign:
 
