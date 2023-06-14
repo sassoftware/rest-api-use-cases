@@ -15,6 +15,9 @@ Each language directory contains a project template you may use to create your o
 
 Each language directory also contains an authentication folder. Use the code provided for your examples. Please note, we're using password authentication grant_type, which is the easiest, but least secure method. 
 
+## Issues
+If you encounter issues or problems with any of the code in this repository, please create a GitHub issue [here](https://github.com/sassoftware/rest-api-use-cases/issues). Alternatively, you can create a thread on the [SAS Developers Community](https://communities.sas.com/t5/Developers/bd-p/developers). Please do not contact SAS Tech Support.
+
 ## Contributing
 
 We welcome your contributions! This project only gets better with examples from others. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to submit contributions to this project. 
