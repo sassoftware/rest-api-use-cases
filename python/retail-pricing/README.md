@@ -7,7 +7,8 @@ A detailed walkthrough of how to use and implement the code in this repository i
 ).
 
 # Authentication - Create conf.ini file
-Authenticating to the Environment and Retrieving Access Token
+## Authenticating to the Environment and Retrieving Access Token
+
 In order to create a session, we must start by invoking the class PricingPlan. The PricingPlan class takes one value, which is the name of a profile contained in the conf.ini file. These profiles can be changed, but they have four important values. Name, url, username, and password.
 ```
 [PRICEOPTIMIZATION]
