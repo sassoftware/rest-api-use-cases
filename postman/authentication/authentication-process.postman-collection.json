@@ -1,8 +1,10 @@
 {
 	"info": {
-		"_postman_id": "0ad56e9d-d83e-4a2c-8730-dcbf0a3e2d9b",
+		"_postman_id": "2a31a33b-2b15-4e64-921d-6432db238fa7",
 		"name": "Authentication Process",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4439096",
+		"_collection_link": "https://www.postman.com/boouejoe/workspace/hackathon-2022/collection/4439096-2a31a33b-2b15-4e64-921d-6432db238fa7?action=share&source=collection_link&creator=4439096"
 	},
 	"item": [
 		{
@@ -130,7 +132,7 @@
 						}
 					]
 				},
-				"method": "GET",
+				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
