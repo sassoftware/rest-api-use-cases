@@ -1,4 +1,4 @@
-# Authenication to SAS Viya
+# Authentication to SAS Viya
 This page contains details on authentication to SAS Viya along with scripts to get you started.
 
 The process for registering a client, generating an access token and using refresh tokens is covered in detail in [Authentication to SAS Viya: a couple of approaches](https://blogs.sas.com/content/sgf/2023/02/07/authentication-to-sas-viya/). The scripts in this repository support various methods discussed in the blog post.
